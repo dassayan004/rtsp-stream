@@ -60,15 +60,13 @@ authInternalUsers:
     ips: []
     # List of permissions.
     permissions:
-      # Available actions are: publish, read, playback, api, metrics, pprof.
       - action: publish
-        # Paths can be set to further restrict access to a specific path.
-        # An empty path means any path.
-        # Regular expressions can be used by using a tilde as prefix.
         path:
       - action: read
         path:
       - action: playback
+        path:
+      - action: api
         path:
 
     # Default administrator.
@@ -370,15 +368,7 @@ webrtc: yes
 webrtcAddress: :8889
 # Enable TLS/HTTPS on the WebRTC server.
 webrtcEncryption: no
-# Path to the server key.
-# This can be generated with:
-# openssl genrsa -out server.key 2048
-# openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
-webrtcServerKey: server.key
-# Path to the server certificate.
-webrtcServerCert: server.crt
-# Value of the Access-Control-Allow-Origin header provided in every HTTP response.
-# This allows to play the WebRTC stream from an external website.
+
 webrtcAllowOrigin: "*"
 # List of IPs or CIDRs of proxies placed before the WebRTC server.
 # If the server receives a request from one of these entries, IP in logs

@@ -7,24 +7,27 @@ services:
     ports:
       - "8888:8888"
       - "8889:8889"
+      - "8189:8189/udp"
       - "8554:8554"
       - "9997:9997"
     restart: always
 
-  # nextjs:
-  #   build:
-  #     context: ./rtsp-feed
-  #     dockerfile: Dockerfile
-  #   container_name: nextjs_app
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     # internal (for Next.js backend → MediaMTX)
-  #     MEDIAMTX_CONTROL_BASE: http://localhost:9997
+  nextjs:
+    build:
+      context: ./rtsp-feed
+      dockerfile: Dockerfile
+    container_name: nextjs_app
+    ports:
+      - "3000:3000"
+    environment:
+      # internal (for Next.js backend → MediaMTX)
+      MEDIAMTX_CONTROL_BASE: http://mediamtx:9997
 
-  #     # public (for browser → HLS/WebRTC)
-  #     MEDIAMTX_HLS_BASE: http://localhost:8888
-  #     MEDIAMTX_WEBRTC_BASE: http://localhost:8889
-  #   depends_on:
-  #     - mediamtx
-  #   restart: always
+      # public (for browser → HLS/WebRTC)
+      MEDIAMTX_HLS_BASE: http://localhost:8888
+      MEDIAMTX_WEBRTC_BASE: http://localhost:8889
+      MEDIAMTX_USER: admin
+      MEDIAMTX_PASS: admin
+    depends_on:
+      - mediamtx
+    restart: always
