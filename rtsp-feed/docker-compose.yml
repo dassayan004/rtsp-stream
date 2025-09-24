@@ -1,0 +1,12 @@
+services:
+  mediamtx:
+    build:
+      context: ./streaming
+      dockerfile: Dockerfile
+    container_name: streaming
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+      - "8554:8554"
+      - "9997:9997"
+    restart: always
