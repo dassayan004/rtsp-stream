@@ -27,6 +27,6 @@ COPY --from=builder /app/package.json ./
 # Set production environment
 ENV NODE_ENV=production
 
-EXPOSE 8000
+EXPOSE 5000
 
 CMD ["node", "dist/main"]

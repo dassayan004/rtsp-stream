@@ -32,7 +32,9 @@ async function bootstrap() {
   });
 
   // Middleware
-  app.enableCors({ origin: ['*'], credentials: true });
+  app.enableCors({
+    origin: ['http://localhost:3000'],
+  });
   app.enableShutdownHooks();
 
   // Pipes

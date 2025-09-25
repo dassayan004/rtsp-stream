@@ -1,45 +1,26 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { StreamingService } from './streaming.service';
-import { CreateStreamingDto } from './dto/create-streaming.dto';
-import { UpdateStreamingDto } from './dto/update-streaming.dto';
+import { StartStreamResponse, StreamListResponse } from '@/common/types';
+import { StartStreamDTO, StopStreamDTO } from './dto/create-streaming.dto';
 
 @Controller('streaming')
 export class StreamingController {
   constructor(private readonly streamingService: StreamingService) {}
 
-  @Post()
-  create(@Body() createStreamingDto: CreateStreamingDto) {
-    return this.streamingService.create(createStreamingDto);
+  @Get('active')
+  async getActivePaths(): Promise<StreamListResponse> {
+    return await this.streamingService.listActivePaths();
   }
 
-  @Get()
-  findAll() {
-    return this.streamingService.findAll();
+  @Post('start')
+  async startStream(@Body() dto: StartStreamDTO): Promise<StartStreamResponse> {
+    return await this.streamingService.startStream(dto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.streamingService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateStreamingDto: UpdateStreamingDto,
-  ) {
-    return this.streamingService.update(+id, updateStreamingDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.streamingService.remove(+id);
+  @Post('stop')
+  async stopStream(
+    @Body() { path }: StopStreamDTO,
+  ): Promise<{ success: boolean }> {
+    return await this.streamingService.stopStream(path);
   }
 }

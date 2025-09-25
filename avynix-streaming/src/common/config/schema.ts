@@ -6,7 +6,7 @@ export const configSchema = z.object({
 
   PORT: z
     .string()
-    .default('8000')
+    .default('5000')
     .transform((val) => {
       const num = Number(val);
       if (Number.isNaN(num) || num <= 0) {

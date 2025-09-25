@@ -59,7 +59,7 @@ export default function LiveFeedPage() {
   const startHls = async () => {
     if (!rtspUrl) return alert("Enter RTSP URL");
     const body: StartStreamDTO = { rtspUrl, protocol: Protocol.HLS };
-    const { path, url: hlsUrl, protocol } = await hlsMutation(body);
+    const { path, url: hlsUrl } = await hlsMutation(body);
     setCurrentPath(path);
 
     if (Hls.isSupported() && videoRef.current) {
@@ -87,7 +87,7 @@ export default function LiveFeedPage() {
   const startWebRtc = async () => {
     if (!rtspUrl) return alert("Enter RTSP URL");
     const body: StartStreamDTO = { rtspUrl, protocol: Protocol.WEBRTC };
-    const { path, url: webrtcUrl, protocol } = await webRtcMutation(body);
+    const { path, url: webrtcUrl } = await webRtcMutation(body);
     setCurrentPath(path);
 
     try {

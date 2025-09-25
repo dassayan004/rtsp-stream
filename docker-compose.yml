@@ -12,6 +12,28 @@ services:
       - "9997:9997"
     restart: always
 
+  nestjs:
+    build:
+      context: ./avynix-streaming
+      dockerfile: Dockerfile
+    container_name: streaming_api
+    ports:
+      - "5000:5000" # NestJS API port
+    environment:
+      # MediaMTX connection (inside Docker, use service name)
+      MEDIAMTX_CONTROL_BASE: http://mediamtx:9997
+      MEDIAMTX_HLS_BASE: http://localhost:8888
+      MEDIAMTX_WEBRTC_BASE: http://localhost:8889
+      MEDIAMTX_USER: admin
+      MEDIAMTX_PASS: admin
+
+      # NestJS own settings
+      PORT: 5000
+      BASE_URL: http://localhost:5000
+    depends_on:
+      - mediamtx
+    restart: always
+
   nextjs:
     build:
       context: ./rtsp-feed
@@ -21,13 +43,9 @@ services:
       - "3000:3000"
     environment:
       # internal (for Next.js backend → MediaMTX)
-      MEDIAMTX_CONTROL_BASE: http://mediamtx:9997
+      NEXT_PUBLIC_MEDIAMTX_CONTROL_BASE: http://localhost:5000
 
-      # public (for browser → HLS/WebRTC)
-      MEDIAMTX_HLS_BASE: http://localhost:8888
-      MEDIAMTX_WEBRTC_BASE: http://localhost:8889
-      MEDIAMTX_USER: admin
-      MEDIAMTX_PASS: admin
     depends_on:
+      - nestjs
       - mediamtx
     restart: always
