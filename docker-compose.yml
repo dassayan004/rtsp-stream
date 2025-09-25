@@ -1,7 +1,7 @@
 services:
   mediamtx:
     build:
-      context: ./streaming
+      context: ./apps/streaming
       dockerfile: Dockerfile
     container_name: streaming
     ports:
@@ -14,11 +14,11 @@ services:
 
   nestjs:
     build:
-      context: ./avynix-streaming
+      context: ./apps/avynix-streaming
       dockerfile: Dockerfile
     container_name: streaming_api
     ports:
-      - "5000:5000" # NestJS API port
+      - "5000:5000"
     environment:
       # MediaMTX connection (inside Docker, use service name)
       MEDIAMTX_CONTROL_BASE: http://mediamtx:9997
@@ -36,7 +36,7 @@ services:
 
   nextjs:
     build:
-      context: ./rtsp-feed
+      context: ./apps/rtsp-feed
       dockerfile: Dockerfile
     container_name: nextjs_app
     ports:
