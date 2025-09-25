@@ -10,6 +10,7 @@ import { ConfigSchema } from '@/common/config/schema';
 import { StartStreamDTO } from './dto/create-streaming.dto';
 import { Protocol } from '@/common/enum/protocol.enum';
 import { MediamtxService } from '@/common/http/mediamtx/mediamtx.service';
+import { FirebaseService } from '@/firebase/firebase.service';
 const POLL_INTERVAL_MS = 1000;
 const MAX_WAIT_MS = 5000;
 @Injectable()
@@ -19,6 +20,7 @@ export class StreamingService {
 
   constructor(
     private readonly mediaMtx: MediamtxService,
+    private readonly firebaseService: FirebaseService,
     private readonly configService: ConfigService<ConfigSchema, true>,
   ) {
     this.hlsBase = this.configService.get<string>(
@@ -73,7 +75,7 @@ export class StreamingService {
         protocol === Protocol.HLS
           ? `${this.hlsBase}/${path}/index.m3u8`
           : `${this.webrtcBase}/${path}/whep`;
-
+      await this.firebaseService.addActiveStream(path);
       return { path, protocol: protocol, url };
     } catch (err) {
       await this.mediaMtx.deletePathConfig(path).catch(() => null);

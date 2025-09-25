@@ -14,7 +14,9 @@ export const configSchema = z.object({
       }
       return num;
     }),
-
+  FIREBASE_DATABASE_URL: z
+    .string()
+    .url('FIREBASE_DATABASE_URL must be a valid URL'),
   MEDIAMTX_CONTROL_BASE: z
     .string()
     .url('MEDIAMTX_CONTROL_BASE must be a valid URL')

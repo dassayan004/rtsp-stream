@@ -1,36 +1,46 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { StreamingService } from './streaming.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { FirebaseService } from '@/firebase/firebase.service';
 
 @Injectable()
 export class StreamingCronService {
   private readonly logger = new Logger(StreamingCronService.name);
 
-  constructor(private readonly streamingService: StreamingService) {}
+  constructor(
+    private readonly streamingService: StreamingService,
+    private readonly firebaseService: FirebaseService,
+  ) {}
 
-  @Cron(CronExpression.EVERY_SECOND)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async checkInactiveStreams() {
     try {
-      const activeStreams = await this.streamingService.listActivePaths();
+      const [activeStreams, firebaseState] = await Promise.all([
+        this.streamingService.listActivePaths(),
+        this.firebaseService.getCameraState(),
+      ]);
+
       if (!activeStreams.items || activeStreams.items.length === 0) return;
-      for (const stream of activeStreams.items) {
-        if (!stream.ready) {
+
+      const activeIds = activeStreams.items.map((s) => s.name);
+      for (const streamId of firebaseState.inactive) {
+        if (activeIds.includes(streamId)) {
           this.logger.warn(
-            `Stream ${stream.name} is not ready. Deleting path...`,
+            `Firebase marks ${streamId} inactive. Stopping in MediaMTX...`,
           );
-          try {
-            await this.streamingService.stopStream(stream.name);
-            this.logger.log(`Stream ${stream.name} deleted successfully.`);
-          } catch (err) {
-            this.logger.error(
-              `Failed to delete stream ${stream.name}: ${(err as Error).message}`,
+          await this.streamingService
+            .stopStream(streamId)
+            .then(() => this.logger.log(`Stream ${streamId} stopped.`))
+            .catch((err) =>
+              this.logger.error(
+                `Failed to stop ${streamId}: ${(err as Error).message}`,
+              ),
             );
-          }
         }
       }
-    } catch (error) {
+    } catch (err) {
       this.logger.error(
-        `Error fetching active streams: ${(error as Error).message}`,
+        `Failed to check inactive streams: ${(err as Error).message}`,
       );
     }
   }

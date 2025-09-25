@@ -4,10 +4,11 @@ import { StreamingController } from './streaming.controller';
 
 import { StreamingCronService } from './streaming-cron.service';
 import { MediamtxModule } from '@/common/http/mediamtx/mediamtx.module';
+import { FirebaseModule } from '@/firebase/firebase.module';
 
 @Module({
-  imports: [MediamtxModule],
+  imports: [MediamtxModule, FirebaseModule],
   controllers: [StreamingController],
-  providers: [StreamingService],
+  providers: [StreamingService, StreamingCronService],
 })
 export class StreamingModule {}
