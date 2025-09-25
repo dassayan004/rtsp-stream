@@ -15,7 +15,7 @@ import { NextResponse } from "next/server";
 const HLS_BASE = process.env.MEDIAMTX_HLS_BASE ?? "http://localhost:8888";
 const WEBRTC_BASE = process.env.MEDIAMTX_WEBRTC_BASE ?? "http://localhost:8889";
 const POLL_INTERVAL_MS = 1000;
-const MAX_WAIT_MS = 10000;
+const MAX_WAIT_MS = 5000;
 
 async function waitForStreamReady(path: string) {
   const start = Date.now();
