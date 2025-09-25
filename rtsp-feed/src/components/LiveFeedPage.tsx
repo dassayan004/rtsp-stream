@@ -5,6 +5,7 @@ import { useStartStream, useStopStream } from "@/hooks/useMediamtx";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Protocol, StartStreamDTO } from "@/lib/utils";
 
 export default function LiveFeedPage() {
   const [rtspUrl, setRtspUrl] = useState("");
@@ -57,7 +58,8 @@ export default function LiveFeedPage() {
   };
   const startHls = async () => {
     if (!rtspUrl) return alert("Enter RTSP URL");
-    const { path, hlsUrl } = await hlsMutation(rtspUrl);
+    const body: StartStreamDTO = { rtspUrl, protocol: Protocol.HLS };
+    const { path, url: hlsUrl, protocol } = await hlsMutation(body);
     setCurrentPath(path);
 
     if (Hls.isSupported() && videoRef.current) {
@@ -84,7 +86,8 @@ export default function LiveFeedPage() {
 
   const startWebRtc = async () => {
     if (!rtspUrl) return alert("Enter RTSP URL");
-    const { path, webrtcUrl } = await webRtcMutation(rtspUrl);
+    const body: StartStreamDTO = { rtspUrl, protocol: Protocol.WEBRTC };
+    const { path, url: webrtcUrl, protocol } = await webRtcMutation(body);
     setCurrentPath(path);
 
     try {

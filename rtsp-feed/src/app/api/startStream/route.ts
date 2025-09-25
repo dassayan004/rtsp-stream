@@ -4,7 +4,12 @@ import {
   deletePathConfig,
   getActivePath,
 } from "@/lib/mediamtxClient.server";
-import { PathConfig, StartStreamResponse } from "@/lib/utils";
+import {
+  PathConfig,
+  Protocol,
+  StartStreamDTO,
+  StartStreamResponse,
+} from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 const HLS_BASE = process.env.MEDIAMTX_HLS_BASE ?? "http://localhost:8888";
@@ -37,18 +42,27 @@ async function waitForStreamReady(path: string) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { rtspUrl } = body;
+    const body = (await req.json()) as StartStreamDTO;
+    const { rtspUrl, protocol } = body;
 
     if (!rtspUrl)
       return NextResponse.json({ error: "rtspUrl required" }, { status: 400 });
+
+    if (!Object.values(Protocol).includes(protocol)) {
+      return NextResponse.json(
+        { error: "protocol must be 'hls' or 'webrtc'" },
+        { status: 400 }
+      );
+    }
 
     const path = `stream_${Date.now()}`;
     const conf: PathConfig = {
       source: rtspUrl,
       sourceOnDemand: false,
     };
+
     await addPathConfig(path, conf);
+
     const isReady = await waitForStreamReady(path);
     if (!isReady) {
       await deletePathConfig(path);
@@ -57,11 +71,15 @@ export async function POST(req: Request) {
         { status: 504 }
       );
     }
+    const url =
+      protocol === Protocol.HLS
+        ? `${HLS_BASE}/${path}/index.m3u8`
+        : `${WEBRTC_BASE}/${path}/whep`;
 
     const response: StartStreamResponse = {
       path,
-      hlsUrl: `${HLS_BASE}/${path}/index.m3u8`,
-      webrtcUrl: `${WEBRTC_BASE}/${path}/whep`,
+      protocol,
+      url,
     };
 
     return NextResponse.json(response);

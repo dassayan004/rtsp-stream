@@ -5,10 +5,19 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+export enum Protocol {
+  HLS = "hls",
+  WEBRTC = "webrtc",
+}
+
+export interface StartStreamDTO {
+  rtspUrl: string;
+  protocol: Protocol;
+}
 export interface StartStreamResponse {
   path: string;
-  hlsUrl: string;
-  webrtcUrl: string;
+  protocol: Protocol;
+  url: string;
 }
 export type ServerError = { error: string };
 export type AxiosServerError = AxiosError<ServerError>;
