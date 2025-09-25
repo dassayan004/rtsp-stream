@@ -9,7 +9,7 @@
     "dev:streaming": "docker compose up mediamtx",
     "build:backend": "pnpm --filter avynix-streaming build",
     "build:frontend": "pnpm --filter rtsp-feed build",
-    "dev:all": "concurrently -n STREAMING,NESTJS,NEXT -c blue,green,magenta \"pnpm run dev:streaming\" \"pnpm run dev:backend\" \"pnpm run dev:frontend\""
+    "dev": "concurrently -n STREAMING,NESTJS,NEXTJS -c blue,green,magenta \"pnpm run dev:streaming\" \"pnpm run dev:backend\" \"pnpm run dev:frontend\""
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
