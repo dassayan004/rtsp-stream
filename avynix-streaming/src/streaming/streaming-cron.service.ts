@@ -8,7 +8,7 @@ export class StreamingCronService {
 
   constructor(private readonly streamingService: StreamingService) {}
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_SECOND)
   async checkInactiveStreams() {
     try {
       const activeStreams = await this.streamingService.listActivePaths();

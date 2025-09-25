@@ -22,7 +22,7 @@ export function useStartStream() {
     mutationFn: (dto: StartStreamDTO) => startStream(dto),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["paths"] }),
     onError: (error) => {
-      const errorMsg = error.response?.data.error || error.message;
+      const errorMsg = error.response?.data.message || error.message;
       console.log("Error starting stream:", errorMsg);
       alert(errorMsg);
     },

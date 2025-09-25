@@ -1,24 +1,15 @@
-import {
-  GatewayTimeoutException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { GatewayTimeoutException, Injectable, Logger } from '@nestjs/common';
 
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom, Observable } from 'rxjs';
 import {
-  GlobalConfigUpdate,
   PathConfig,
   StartStreamResponse,
-  StreamItem,
   StreamListResponse,
 } from '@/common/types';
-import { AxiosResponse } from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { ConfigSchema } from '@/common/config/schema';
 import { StartStreamDTO } from './dto/create-streaming.dto';
 import { Protocol } from '@/common/enum/protocol.enum';
+import { MediamtxService } from '@/common/http/mediamtx/mediamtx.service';
 const POLL_INTERVAL_MS = 1000;
 const MAX_WAIT_MS = 5000;
 @Injectable()
@@ -27,7 +18,7 @@ export class StreamingService {
   private readonly webrtcBase: string;
 
   constructor(
-    private readonly httpService: HttpService,
+    private readonly mediaMtx: MediamtxService,
     private readonly configService: ConfigService<ConfigSchema, true>,
   ) {
     this.hlsBase = this.configService.get<string>(
@@ -39,72 +30,16 @@ export class StreamingService {
       'http://localhost:8889',
     );
   }
-
-  private async handleRequest<T>(
-    request$: Observable<AxiosResponse<T>>,
-  ): Promise<T> {
-    try {
-      const response = await firstValueFrom(request$);
-      return response.data;
-    } catch (err: unknown) {
-      const message = (err as Error).message ?? 'MediaMTX request failed';
-      throw new InternalServerErrorException(message);
-    }
-  }
-  // ---------------- CONFIG ----------------
-  async patchGlobalConfig(update: GlobalConfigUpdate) {
-    return this.handleRequest(
-      this.httpService.patch('/config/global/patch', update),
-    );
-  }
-
-  async getGlobalConfig() {
-    return this.handleRequest(this.httpService.get('/config/global/get'));
-  }
-
-  // ---------------- PATH CONFIG ----------------
-  async listPathConfigs() {
-    return this.handleRequest(this.httpService.get('/config/paths/list'));
-  }
-
-  async getPathConfig(name: string) {
-    return this.handleRequest(
-      this.httpService.get(`/config/paths/get/${name}`),
-    );
-  }
-
-  async addPathConfig(name: string, conf: PathConfig) {
-    return this.handleRequest(
-      this.httpService.post(`/config/paths/add/${name}`, conf),
-    );
-  }
-
-  async deletePathConfig(pathName: string) {
-    return this.handleRequest(
-      this.httpService.delete(`/config/paths/delete/${pathName}`),
-    );
-  }
-
-  // ---------------- ACTIVE PATHS ----------------
   async listActivePaths(): Promise<StreamListResponse> {
-    return this.handleRequest<StreamListResponse>(
-      this.httpService.get<StreamListResponse>('/paths/list'),
-    );
+    return await this.mediaMtx.listActivePaths();
   }
-
-  async getActivePath(name: string): Promise<StreamItem> {
-    return this.handleRequest<StreamItem>(
-      this.httpService.get<StreamItem>(`/paths/get/${name}`),
-    );
-  }
-
   private async waitForStreamReady(path: string): Promise<void> {
     const start = Date.now();
     let lastData: unknown = null;
 
     while (Date.now() - start < MAX_WAIT_MS) {
       try {
-        const data = await this.getActivePath(path);
+        const data = await this.mediaMtx.getActivePath(path);
 
         lastData = data;
         if (data?.ready) return;
@@ -131,7 +66,7 @@ export class StreamingService {
     const conf: PathConfig = { source: rtspUrl, sourceOnDemand: false };
 
     try {
-      await this.addPathConfig(path, conf);
+      await this.mediaMtx.addPathConfig(path, conf);
       await this.waitForStreamReady(path);
 
       const url =
@@ -141,13 +76,13 @@ export class StreamingService {
 
       return { path, protocol: protocol, url };
     } catch (err) {
-      await this.deletePathConfig(path).catch(() => null);
+      await this.mediaMtx.deletePathConfig(path).catch(() => null);
       throw err;
     }
   }
 
   async stopStream(pathName: string) {
-    await this.deletePathConfig(pathName);
+    await this.mediaMtx.deletePathConfig(pathName);
     return { success: true };
   }
 }

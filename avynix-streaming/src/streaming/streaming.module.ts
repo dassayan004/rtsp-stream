@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { StreamingService } from './streaming.service';
 import { StreamingController } from './streaming.controller';
-import { MediamtxHttpModule } from './mediamtx-http.module';
+
 import { StreamingCronService } from './streaming-cron.service';
+import { MediamtxModule } from '@/common/http/mediamtx/mediamtx.module';
 
 @Module({
-  imports: [MediamtxHttpModule],
+  imports: [MediamtxModule],
   controllers: [StreamingController],
-  providers: [StreamingService, StreamingCronService],
+  providers: [StreamingService],
 })
 export class StreamingModule {}

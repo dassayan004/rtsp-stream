@@ -1,5 +1,5 @@
-// src/mediamtx/mediamtx-http.module.ts
 import { Module } from '@nestjs/common';
+import { MediamtxService } from './mediamtx.service';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { ConfigSchema } from '@/common/config/schema';
@@ -9,11 +9,7 @@ import { ConfigSchema } from '@/common/config/schema';
     HttpModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService<ConfigSchema, true>) => ({
-        baseURL:
-          configService.get<string>(
-            'MEDIAMTX_CONTROL_BASE',
-            'http://mediamtx:9997',
-          ) + '/v3',
+        baseURL: configService.get<string>('MEDIAMTX_CONTROL_BASE') + '/v3',
         timeout: 10000,
         auth: {
           username: configService.get<string>('MEDIAMTX_USER', 'admin'),
@@ -22,6 +18,7 @@ import { ConfigSchema } from '@/common/config/schema';
       }),
     }),
   ],
-  exports: [HttpModule],
+  providers: [MediamtxService],
+  exports: [MediamtxService],
 })
-export class MediamtxHttpModule {}
+export class MediamtxModule {}

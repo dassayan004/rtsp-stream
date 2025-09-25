@@ -20,7 +20,11 @@ export interface StartStreamResponse {
   protocol: Protocol;
   url: string;
 }
-export type ServerError = { error: string };
+export type ServerError = {
+  error: string;
+  message: string;
+  statusCode: number;
+};
 export type AxiosServerError = AxiosError<ServerError>;
 export interface PathConfig {
   source: string;
