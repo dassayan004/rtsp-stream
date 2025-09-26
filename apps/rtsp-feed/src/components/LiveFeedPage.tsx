@@ -124,7 +124,7 @@ export default function LiveFeedPage() {
                 console.error("Failed to play WebRTC video:", err);
                 showCanvasError("Unable to play WebRTC stream");
               });
-              debugger;
+
               await updateCameraStreaming(camera.id, true);
               drawToCanvas();
               videoRef.current?.removeEventListener(
