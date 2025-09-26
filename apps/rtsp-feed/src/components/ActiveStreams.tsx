@@ -12,7 +12,7 @@ export default function ActiveStreams() {
   const firstStreamId = data?.items[0]?.name ?? null;
   return (
     <>
-      {firstStreamId && <StreamPresence streamId={firstStreamId} />}
+      {/* {firstStreamId && <StreamPresence streamId={firstStreamId} />} */}
 
       <ul>
         {data?.items.map((item) => (

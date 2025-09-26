@@ -1,36 +1,74 @@
-import { ref, runTransaction } from "firebase/database";
+import { push, ref, runTransaction, set, update } from "firebase/database";
 import firebaseDatabase from "./firebase";
-import { CameraState } from "@/lib/utils";
+import { CameraDevice, Protocol } from "@/lib/utils";
 
-export const addActiveStream = async (streamId: string) => {
-  const cameraRef = ref(firebaseDatabase, "/CameraState");
-
+export async function addCamera({
+  rtspUrl,
+  streamId,
+  name,
+  url,
+  protocol,
+}: {
+  rtspUrl: string;
+  streamId: string;
+  name: string;
+  url: string;
+  protocol: Protocol;
+}) {
   try {
-    await runTransaction(cameraRef, (currentState: CameraState | null) => {
-      const active = currentState?.active || [];
-      if (!active.includes(streamId)) {
-        active.push(streamId);
-      }
-      return { active };
-    });
-    console.log(`Stream ${streamId} added to active`);
-  } catch (err) {
-    console.error("Failed to add active stream:", err);
+    const camerasRef = ref(firebaseDatabase, "/camera_devices");
+    const newCameraRef = push(camerasRef);
+    const cameraId = newCameraRef.key!;
+
+    const newCamera: CameraDevice = {
+      id: cameraId,
+      name,
+      rtsp_url: rtspUrl,
+      isActive: true,
+      isStreaming: false,
+      users: [],
+      ...(protocol === Protocol.HLS && {
+        stream_id_hls: streamId,
+        hls_url: url,
+      }),
+      ...(protocol === Protocol.WEBRTC && {
+        stream_id_webrtc: streamId,
+        webrtc_url: url,
+      }),
+    };
+
+    await set(newCameraRef, newCamera);
+    console.log(`Stream ${streamId} was added under cameraId ${cameraId}`);
+    return newCamera;
+  } catch (error) {
+    console.error("Failed to add stream:", error);
+    throw error;
   }
-};
+}
 
-export const removeStream = async (streamId: string) => {
-  const cameraRef = ref(firebaseDatabase, "/CameraState");
-
+export async function updateCameraStreaming(
+  cameraId: string,
+  isStreaming: boolean
+) {
   try {
-    await runTransaction(cameraRef, (currentState: CameraState | null) => {
-      const active = (currentState?.active || []).filter(
-        (id) => id !== streamId
-      );
-      return { active };
-    });
-    console.log(`Stream ${streamId} was removed`);
-  } catch (err) {
-    console.error("Failed to remove stream:", err);
+    const cameraRef = ref(firebaseDatabase, `/camera_devices/${cameraId}`);
+    await update(cameraRef, { isStreaming });
+    console.log(
+      `Camera ${cameraId} streaming status updated to ${isStreaming}`
+    );
+  } catch (error) {
+    console.error(`Failed to update streaming for camera ${cameraId}:`, error);
+    throw error;
   }
-};
+}
+
+export async function markCameraInactive(cameraId: string) {
+  try {
+    const cameraRef = ref(firebaseDatabase, `/camera_devices/${cameraId}`);
+    await update(cameraRef, { isActive: false, isStreaming: false });
+    console.log(`Camera ${cameraId} marked as inactive`);
+  } catch (error) {
+    console.error(`Failed to mark camera ${cameraId} inactive:`, error);
+    throw error;
+  }
+}

@@ -2,15 +2,15 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { removeStream } from "@/firebase/service";
+import { markCameraInactive } from "@/firebase/service";
 
-export const StreamPresence = ({ streamId }: { streamId: string | null }) => {
+export const StreamPresence = ({ cameraId }: { cameraId: string | null }) => {
   const pathname = usePathname();
   useEffect(() => {
-    if (!streamId) return;
+    if (!cameraId) return;
 
     const markInactive = () => {
-      removeStream(streamId).catch((err) => {
+      markCameraInactive(cameraId).catch((err) => {
         console.error("Failed to remove stream on disconnect:", err);
       });
     };
@@ -23,7 +23,7 @@ export const StreamPresence = ({ streamId }: { streamId: string | null }) => {
 
       markInactive();
     };
-  }, [streamId, pathname]);
+  }, [cameraId, pathname]);
 
   return null;
 };

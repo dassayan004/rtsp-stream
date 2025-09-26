@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Protocol, StartStreamDTO } from "@/lib/utils";
-import { addActiveStream } from "@/firebase/service";
+import { addCamera, updateCameraStreaming } from "@/firebase/service";
 
 export default function LiveFeedPage() {
   const [rtspUrl, setRtspUrl] = useState("");
   const [streamId, setStreamId] = useState<string | null>(null);
-
+  const [cameraId, setCameraId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null); // hidden video
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -61,8 +61,16 @@ export default function LiveFeedPage() {
     if (!rtspUrl) return alert("Enter RTSP URL");
     const body: StartStreamDTO = { rtspUrl, protocol: Protocol.HLS };
     const { streamId, url: hlsUrl } = await hlsMutation(body);
-    setStreamId(streamId);
 
+    setStreamId(streamId);
+    const camera = await addCamera({
+      rtspUrl,
+      streamId,
+      url: hlsUrl,
+      name: `Camera ${streamId.split("_")[1]}`,
+      protocol: Protocol.HLS,
+    });
+    setCameraId(camera.id);
     if (Hls.isSupported() && videoRef.current) {
       const hls = new Hls();
       hls.loadSource(hlsUrl);
@@ -76,14 +84,14 @@ export default function LiveFeedPage() {
         .play()
         .catch(() => showCanvasError("Unable to play video"));
 
-      await addActiveStream(streamId);
+      await updateCameraStreaming(camera.id, true);
       drawToCanvas();
     } else if (videoRef.current?.canPlayType("application/vnd.apple.mpegurl")) {
       videoRef.current.src = hlsUrl;
       videoRef.current
         .play()
         .catch(() => showCanvasError("Unable to play video"));
-      await addActiveStream(streamId);
+      await updateCameraStreaming(camera.id, true);
       drawToCanvas();
     }
   };
@@ -93,7 +101,14 @@ export default function LiveFeedPage() {
     const body: StartStreamDTO = { rtspUrl, protocol: Protocol.WEBRTC };
     const { streamId, url: webrtcUrl } = await webRtcMutation(body);
     setStreamId(streamId);
-
+    const camera = await addCamera({
+      rtspUrl,
+      streamId,
+      name: `Camera ${streamId.split("_")[1]}`,
+      url: webrtcUrl,
+      protocol: Protocol.WEBRTC,
+    });
+    setCameraId(camera.id);
     try {
       if (!pcRef.current) {
         pcRef.current = new RTCPeerConnection();
@@ -110,7 +125,7 @@ export default function LiveFeedPage() {
                 showCanvasError("Unable to play WebRTC stream");
               });
               debugger;
-              await addActiveStream(streamId);
+              await updateCameraStreaming(camera.id, true);
               drawToCanvas();
               videoRef.current?.removeEventListener(
                 "loadedmetadata",
@@ -162,6 +177,10 @@ export default function LiveFeedPage() {
     await stopStreamMutation(streamId);
     setStreamId(null);
 
+    if (cameraId) {
+      await updateCameraStreaming(cameraId, false);
+      setCameraId(null);
+    }
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
