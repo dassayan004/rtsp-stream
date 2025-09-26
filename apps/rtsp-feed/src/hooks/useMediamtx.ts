@@ -32,7 +32,7 @@ export function useStartStream() {
 export function useStopStream() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (path: string) => stopStream(path),
+    mutationFn: (streamId: string) => stopStream(streamId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["paths"] }),
   });
 }

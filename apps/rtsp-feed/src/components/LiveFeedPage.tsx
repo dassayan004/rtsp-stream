@@ -9,7 +9,7 @@ import { Protocol, StartStreamDTO } from "@/lib/utils";
 
 export default function LiveFeedPage() {
   const [rtspUrl, setRtspUrl] = useState("");
-  const [currentPath, setCurrentPath] = useState<string | null>(null);
+  const [streamId, setStreamId] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null); // hidden video
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -59,8 +59,8 @@ export default function LiveFeedPage() {
   const startHls = async () => {
     if (!rtspUrl) return alert("Enter RTSP URL");
     const body: StartStreamDTO = { rtspUrl, protocol: Protocol.HLS };
-    const { path, url: hlsUrl } = await hlsMutation(body);
-    setCurrentPath(path);
+    const { streamId, url: hlsUrl } = await hlsMutation(body);
+    setStreamId(streamId);
 
     if (Hls.isSupported() && videoRef.current) {
       const hls = new Hls();
@@ -87,8 +87,8 @@ export default function LiveFeedPage() {
   const startWebRtc = async () => {
     if (!rtspUrl) return alert("Enter RTSP URL");
     const body: StartStreamDTO = { rtspUrl, protocol: Protocol.WEBRTC };
-    const { path, url: webrtcUrl } = await webRtcMutation(body);
-    setCurrentPath(path);
+    const { streamId, url: webrtcUrl } = await webRtcMutation(body);
+    setStreamId(streamId);
 
     try {
       if (!pcRef.current) {
@@ -152,9 +152,9 @@ export default function LiveFeedPage() {
   };
 
   const stopStream = async () => {
-    if (!currentPath) return;
-    await stopStreamMutation(currentPath);
-    setCurrentPath(null);
+    if (!streamId) return;
+    await stopStreamMutation(streamId);
+    setStreamId(null);
 
     if (hlsRef.current) {
       hlsRef.current.destroy();
@@ -207,7 +207,7 @@ export default function LiveFeedPage() {
           <Button
             variant="destructive"
             onClick={stopStream}
-            disabled={!currentPath || isStopPending}
+            disabled={!streamId || isStopPending}
           >
             Stop Stream
           </Button>

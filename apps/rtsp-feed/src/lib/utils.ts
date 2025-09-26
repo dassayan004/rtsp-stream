@@ -16,7 +16,7 @@ export interface StartStreamDTO {
   protocol: Protocol;
 }
 export interface StartStreamResponse {
-  path: string;
+  streamId: string;
   protocol: Protocol;
   url: string;
 }
