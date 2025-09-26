@@ -12,7 +12,7 @@ export class StreamingCronService {
     private readonly firebaseService: FirebaseService,
   ) {}
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_MINUTE)
   async checkInactiveStreams() {
     try {
       const [activeStreams, firebaseState] = await Promise.all([
@@ -22,11 +22,12 @@ export class StreamingCronService {
 
       if (!activeStreams.items || activeStreams.items.length === 0) return;
 
-      const activeIds = activeStreams.items.map((s) => s.name);
-      for (const streamId of firebaseState.inactive) {
-        if (activeIds.includes(streamId)) {
+      const firebaseActiveIds = new Set(firebaseState.active || []);
+      for (const stream of activeStreams.items) {
+        const streamId = stream.name;
+        if (!firebaseActiveIds.has(streamId)) {
           this.logger.warn(
-            `Firebase marks ${streamId} inactive. Stopping in MediaMTX...`,
+            `Stream ${streamId} is active in MediaMTX but missing in Firebase. Stopping...`,
           );
           await this.streamingService
             .stopStream(streamId)

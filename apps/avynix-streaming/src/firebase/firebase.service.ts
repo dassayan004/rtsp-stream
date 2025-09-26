@@ -16,7 +16,6 @@ export class FirebaseService {
 
     return {
       active: Array.isArray(data.active) ? data.active : [],
-      inactive: Array.isArray(data.inactive) ? data.inactive : [],
     };
   }
 
@@ -25,7 +24,6 @@ export class FirebaseService {
 
     if (!state.active.includes(streamId)) {
       state.active.push(streamId);
-      state.inactive = state.inactive.filter((id) => id !== streamId);
       await this.db.ref('/CameraState').set(state);
       this.logger.log(`Stream ${streamId} added to active`);
     }
@@ -34,20 +32,20 @@ export class FirebaseService {
   async moveToInactive(streamId: string) {
     const state = await this.getCameraState();
 
-    state.active = state.active.filter((id) => id !== streamId);
-    if (!state.inactive.includes(streamId)) {
-      state.inactive.push(streamId);
+    if (state.active.includes(streamId)) {
+      state.active = state.active.filter((id) => id !== streamId);
+      await this.db.ref('/CameraState').set(state);
+      this.logger.log(
+        `Stream ${streamId} moved to inactive (removed from active)`,
+      );
     }
-    await this.db.ref('/CameraState').set(state);
-    this.logger.log(`Stream ${streamId} moved to inactive`);
   }
 
   async removeStream(streamId: string) {
     const state = await this.getCameraState();
 
     const active = state.active.filter((id) => id !== streamId);
-    const inactive = state.inactive.filter((id) => id !== streamId);
-    await this.db.ref('/CameraState').set({ active, inactive });
+    await this.db.ref('/CameraState').set({ active });
     this.logger.log(`Stream ${streamId} was removed`);
   }
 }

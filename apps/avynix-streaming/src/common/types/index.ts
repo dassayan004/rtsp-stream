@@ -41,5 +41,4 @@ export interface StreamListResponse {
 
 export interface CameraState {
   active: string[];
-  inactive: string[];
 }

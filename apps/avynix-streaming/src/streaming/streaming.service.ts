@@ -77,7 +77,7 @@ export class StreamingService {
         protocol === Protocol.HLS
           ? `${this.hlsBase}/${streamId}/index.m3u8`
           : `${this.webrtcBase}/${streamId}/whep`;
-      await this.firebaseService.addActiveStream(streamId);
+
       return { streamId, protocol: protocol, url };
     } catch (err) {
       await this.mediaMtx.deletePathConfig(streamId).catch(() => null);
