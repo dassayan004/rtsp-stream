@@ -35,24 +35,26 @@ export class StreamingService {
   async listActivePaths(): Promise<StreamListResponse> {
     return await this.mediaMtx.listActivePaths();
   }
-  private async waitForStreamReady(path: string): Promise<void> {
+  private async waitForStreamReady(streamId: string): Promise<void> {
     const start = Date.now();
     let lastData: unknown = null;
 
     while (Date.now() - start < MAX_WAIT_MS) {
       try {
-        const data = await this.mediaMtx.getActivePath(path);
+        const data = await this.mediaMtx.getActivePath(streamId);
 
         lastData = data;
         if (data?.ready) return;
       } catch (err) {
-        Logger.warn(`Error fetching path status: ${(err as Error).message}`);
+        Logger.warn(
+          `Error fetching streamId status: ${(err as Error).message}`,
+        );
       }
       await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
     }
 
     Logger.warn(
-      `Stream ${path} not ready after ${MAX_WAIT_MS / 1000}s`,
+      `Stream ${streamId} not ready after ${MAX_WAIT_MS / 1000}s`,
       lastData,
     );
     throw new GatewayTimeoutException(
