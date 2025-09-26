@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Protocol, StartStreamDTO } from "@/lib/utils";
+import { addActiveStream } from "@/firebase/service";
 
 export default function LiveFeedPage() {
   const [rtspUrl, setRtspUrl] = useState("");
@@ -74,12 +75,15 @@ export default function LiveFeedPage() {
       videoRef.current
         .play()
         .catch(() => showCanvasError("Unable to play video"));
+
+      await addActiveStream(streamId);
       drawToCanvas();
     } else if (videoRef.current?.canPlayType("application/vnd.apple.mpegurl")) {
       videoRef.current.src = hlsUrl;
       videoRef.current
         .play()
         .catch(() => showCanvasError("Unable to play video"));
+      await addActiveStream(streamId);
       drawToCanvas();
     }
   };
@@ -100,11 +104,13 @@ export default function LiveFeedPage() {
           if (videoRef.current) {
             videoRef.current.srcObject = event.streams[0];
 
-            const handleLoaded = () => {
+            const handleLoaded = async () => {
               videoRef.current?.play().catch((err) => {
                 console.error("Failed to play WebRTC video:", err);
                 showCanvasError("Unable to play WebRTC stream");
               });
+              debugger;
+              await addActiveStream(streamId);
               drawToCanvas();
               videoRef.current?.removeEventListener(
                 "loadedmetadata",

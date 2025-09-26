@@ -58,3 +58,7 @@ export interface StreamListResponse {
   pageCount: number;
   items: StreamItem[] | [];
 }
+
+export interface CameraState {
+  active: string[];
+}
