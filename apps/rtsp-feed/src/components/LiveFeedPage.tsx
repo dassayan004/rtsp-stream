@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import Hls from "hls.js";
-import { useStartStream, useStopStream } from "@/hooks/useMediamtx";
+import { useStartStream, useCameraInactive } from "@/hooks/useMediamtx";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +23,8 @@ export default function LiveFeedPage() {
   const { mutateAsync: webRtcMutation, isPending: isWebRtcPending } =
     useStartStream();
 
-  const { mutateAsync: stopStreamMutation, isPending: isStopPending } =
-    useStopStream();
+  const { mutateAsync: markCameraInactiveMutation, isPending: isInactivating } =
+    useCameraInactive();
 
   const drawToCanvas = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -82,16 +82,21 @@ export default function LiveFeedPage() {
       hlsRef.current = hls;
       videoRef.current
         .play()
+        .then(async () => {
+          await updateCameraStreaming(camera.id, true);
+        })
         .catch(() => showCanvasError("Unable to play video"));
 
-      await updateCameraStreaming(camera.id, true);
       drawToCanvas();
     } else if (videoRef.current?.canPlayType("application/vnd.apple.mpegurl")) {
       videoRef.current.src = hlsUrl;
       videoRef.current
         .play()
+        .then(async () => {
+          await updateCameraStreaming(camera.id, true);
+        })
         .catch(() => showCanvasError("Unable to play video"));
-      await updateCameraStreaming(camera.id, true);
+
       drawToCanvas();
     }
   };
@@ -120,12 +125,16 @@ export default function LiveFeedPage() {
             videoRef.current.srcObject = event.streams[0];
 
             const handleLoaded = async () => {
-              videoRef.current?.play().catch((err) => {
-                console.error("Failed to play WebRTC video:", err);
-                showCanvasError("Unable to play WebRTC stream");
-              });
+              videoRef.current
+                ?.play()
+                .then(async () => {
+                  await updateCameraStreaming(camera.id, true);
+                })
+                .catch((err) => {
+                  console.error("Failed to play WebRTC video:", err);
+                  showCanvasError("Unable to play WebRTC stream");
+                });
 
-              await updateCameraStreaming(camera.id, true);
               drawToCanvas();
               videoRef.current?.removeEventListener(
                 "loadedmetadata",
@@ -174,11 +183,10 @@ export default function LiveFeedPage() {
 
   const stopStream = async () => {
     if (!streamId) return;
-    await stopStreamMutation(streamId);
-    setStreamId(null);
 
+    setStreamId(null);
     if (cameraId) {
-      await updateCameraStreaming(cameraId, false);
+      await markCameraInactiveMutation(cameraId);
       setCameraId(null);
     }
     if (hlsRef.current) {
@@ -232,7 +240,7 @@ export default function LiveFeedPage() {
           <Button
             variant="destructive"
             onClick={stopStream}
-            disabled={!streamId || isStopPending}
+            disabled={!streamId || isInactivating}
           >
             Stop Stream
           </Button>

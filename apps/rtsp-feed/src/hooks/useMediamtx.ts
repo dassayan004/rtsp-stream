@@ -1,16 +1,18 @@
+import { markCameraInactive } from "@/firebase/service";
 import {
   AxiosServerError,
   StartStreamDTO,
   StartStreamResponse,
   StreamListResponse,
 } from "@/lib/utils";
-import { listPaths, startStream, stopStream } from "@/services/client";
+import { listPaths, startStream } from "@/services/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function usePaths() {
   return useQuery<StreamListResponse>({
     queryKey: ["paths"],
     queryFn: listPaths,
+    refetchInterval: 10000,
   });
 }
 
@@ -29,10 +31,8 @@ export function useStartStream() {
   });
 }
 // Stop a stream
-export function useStopStream() {
-  const qc = useQueryClient();
+export function useCameraInactive() {
   return useMutation({
-    mutationFn: (streamId: string) => stopStream(streamId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["paths"] }),
+    mutationFn: (streamId: string) => markCameraInactive(streamId),
   });
 }

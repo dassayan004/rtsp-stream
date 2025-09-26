@@ -25,7 +25,8 @@ export class StreamingCronService {
       const activeStreamIds = new Set(activeStreams.items.map((s) => s.name));
 
       const inactiveCameras = cameras.filter(
-        (cam) => !cam.isActive && !cam.isStreaming,
+        (cam) => cam.isActive && !cam.isStreaming,
+        // && cam.users.length === 0,
       );
       for (const camera of inactiveCameras) {
         const streams = [

@@ -17,10 +17,10 @@ export class StreamingController {
     return await this.streamingService.startStream(dto);
   }
 
-  @Post('stop')
-  async stopStream(
-    @Body() { streamId }: StopStreamDTO,
-  ): Promise<{ success: boolean }> {
-    return await this.streamingService.stopStream(streamId);
-  }
+  // @Post('stop')
+  // async stopStream(
+  //   @Body() { streamId }: StopStreamDTO,
+  // ): Promise<{ success: boolean }> {
+  //   return await this.streamingService.stopStream(streamId);
+  // }
 }

@@ -30,8 +30,3 @@ export async function startStream({
   );
   return data;
 }
-
-export async function stopStream(streamId: string) {
-  const { data } = await apiClient.post("/streaming/stop", { streamId });
-  return data;
-}

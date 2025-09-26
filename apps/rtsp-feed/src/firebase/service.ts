@@ -1,4 +1,4 @@
-import { push, ref, runTransaction, set, update } from "firebase/database";
+import { onDisconnect, push, ref, set, update } from "firebase/database";
 import firebaseDatabase from "./firebase";
 import { CameraDevice, Protocol } from "@/lib/utils";
 
@@ -56,6 +56,7 @@ export async function updateCameraStreaming(
     console.log(
       `Camera ${cameraId} streaming status updated to ${isStreaming}`
     );
+    await onDisconnect(cameraRef).update({ isStreaming: false });
   } catch (error) {
     console.error(`Failed to update streaming for camera ${cameraId}:`, error);
     throw error;
@@ -65,10 +66,10 @@ export async function updateCameraStreaming(
 export async function markCameraInactive(cameraId: string) {
   try {
     const cameraRef = ref(firebaseDatabase, `/camera_devices/${cameraId}`);
-    await update(cameraRef, { isActive: false, isStreaming: false });
-    console.log(`Camera ${cameraId} marked as inactive`);
+    await update(cameraRef, { isStreaming: false });
+    console.log(`Camera ${cameraId} marked as streaming false`);
   } catch (error) {
-    console.error(`Failed to mark camera ${cameraId} inactive:`, error);
+    console.error(`Failed to update streaming for camera ${cameraId}:`, error);
     throw error;
   }
 }
