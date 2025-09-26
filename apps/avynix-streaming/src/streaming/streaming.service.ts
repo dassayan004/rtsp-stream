@@ -64,27 +64,27 @@ export class StreamingService {
     rtspUrl,
     protocol,
   }: StartStreamDTO): Promise<StartStreamResponse> {
-    const path = `stream_${Date.now()}`;
+    const streamId = `stream_${Date.now()}`;
     const conf: PathConfig = { source: rtspUrl, sourceOnDemand: false };
 
     try {
-      await this.mediaMtx.addPathConfig(path, conf);
-      await this.waitForStreamReady(path);
+      await this.mediaMtx.addPathConfig(streamId, conf);
+      await this.waitForStreamReady(streamId);
 
       const url =
         protocol === Protocol.HLS
-          ? `${this.hlsBase}/${path}/index.m3u8`
-          : `${this.webrtcBase}/${path}/whep`;
-      await this.firebaseService.addActiveStream(path);
-      return { path, protocol: protocol, url };
+          ? `${this.hlsBase}/${streamId}/index.m3u8`
+          : `${this.webrtcBase}/${streamId}/whep`;
+      await this.firebaseService.addActiveStream(streamId);
+      return { streamId, protocol: protocol, url };
     } catch (err) {
-      await this.mediaMtx.deletePathConfig(path).catch(() => null);
+      await this.mediaMtx.deletePathConfig(streamId).catch(() => null);
       throw err;
     }
   }
 
-  async stopStream(pathName: string) {
-    await this.mediaMtx.deletePathConfig(pathName);
+  async stopStream(streamId: string) {
+    await this.mediaMtx.deletePathConfig(streamId);
     return { success: true };
   }
 }

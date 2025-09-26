@@ -28,19 +28,21 @@ export class MediamtxService {
     return handleHttpRequest(this.httpService.get('/config/paths/list'));
   }
 
-  async getPathConfig(name: string) {
-    return handleHttpRequest(this.httpService.get(`/config/paths/get/${name}`));
-  }
-
-  async addPathConfig(name: string, conf: PathConfig) {
+  async getPathConfig(streamId: string) {
     return handleHttpRequest(
-      this.httpService.post(`/config/paths/add/${name}`, conf),
+      this.httpService.get(`/config/paths/get/${streamId}`),
     );
   }
 
-  async deletePathConfig(pathName: string) {
+  async addPathConfig(streamId: string, conf: PathConfig) {
     return handleHttpRequest(
-      this.httpService.delete(`/config/paths/delete/${pathName}`),
+      this.httpService.post(`/config/paths/add/${streamId}`, conf),
+    );
+  }
+
+  async deletePathConfig(streamId: string) {
+    return handleHttpRequest(
+      this.httpService.delete(`/config/paths/delete/${streamId}`),
     );
   }
 
@@ -51,9 +53,9 @@ export class MediamtxService {
     );
   }
 
-  async getActivePath(name: string): Promise<StreamItem> {
+  async getActivePath(streamId: string): Promise<StreamItem> {
     return handleHttpRequest<StreamItem>(
-      this.httpService.get<StreamItem>(`/paths/get/${name}`),
+      this.httpService.get<StreamItem>(`/paths/get/${streamId}`),
     );
   }
 }

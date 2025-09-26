@@ -19,8 +19,8 @@ export class StreamingController {
 
   @Post('stop')
   async stopStream(
-    @Body() { path }: StopStreamDTO,
+    @Body() { streamId }: StopStreamDTO,
   ): Promise<{ success: boolean }> {
-    return await this.streamingService.stopStream(path);
+    return await this.streamingService.stopStream(streamId);
   }
 }

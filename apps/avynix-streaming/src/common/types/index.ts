@@ -1,7 +1,7 @@
 import { Protocol } from '../enum/protocol.enum';
 
 export interface StartStreamResponse {
-  path: string;
+  streamId: string;
   protocol: Protocol;
   url: string;
 }

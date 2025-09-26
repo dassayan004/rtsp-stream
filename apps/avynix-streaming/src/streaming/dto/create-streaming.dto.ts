@@ -22,10 +22,10 @@ export class StartStreamDTO {
 
 export class StopStreamDTO {
   @ApiProperty({
-    description: 'The path of the stream to stop',
+    description: 'The streamId of the stream to stop',
     example: 'stream_1695654321000',
   })
   @IsNotEmpty()
   @IsString()
-  path: string;
+  streamId: string;
 }
