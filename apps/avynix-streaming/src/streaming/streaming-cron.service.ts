@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { StreamingService } from './streaming.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { FirebaseService } from '@/firebase/firebase.service';
+import { Protocol } from '@/common/enum/protocol.enum';
 
 @Injectable()
 export class StreamingCronService {
@@ -12,31 +13,61 @@ export class StreamingCronService {
     private readonly firebaseService: FirebaseService,
   ) {}
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async checkInactiveStreams() {
     try {
-      const [activeStreams, firebaseState] = await Promise.all([
+      const [activeStreams, cameras] = await Promise.all([
         this.streamingService.listActivePaths(),
-        this.firebaseService.getCameraState(),
+        this.firebaseService.getCameras(),
       ]);
+      if (!activeStreams.items?.length) return;
 
-      if (!activeStreams.items || activeStreams.items.length === 0) return;
+      const activeStreamIds = new Set(activeStreams.items.map((s) => s.name));
 
-      const firebaseActiveIds = new Set(firebaseState.active || []);
-      for (const stream of activeStreams.items) {
-        const streamId = stream.name;
-        if (!firebaseActiveIds.has(streamId)) {
-          this.logger.warn(
-            `Stream ${streamId} is active in MediaMTX but missing in Firebase. Stopping...`,
-          );
-          await this.streamingService
-            .stopStream(streamId)
-            .then(() => this.logger.log(`Stream ${streamId} stopped.`))
-            .catch((err) =>
-              this.logger.error(
-                `Failed to stop ${streamId}: ${(err as Error).message}`,
-              ),
-            );
+      const inactiveCameras = cameras.filter(
+        (cam) => !cam.isActive && !cam.isStreaming,
+      );
+      for (const camera of inactiveCameras) {
+        const streams = [
+          { id: camera.stream_id_hls, protocol: Protocol.HLS },
+          { id: camera.stream_id_webrtc, protocol: Protocol.WEBRTC },
+        ];
+
+        for (const stream of streams) {
+          if (!stream.id || !activeStreamIds.has(stream.id)) continue;
+
+          switch (stream.protocol) {
+            case Protocol.HLS:
+              try {
+                await this.streamingService.stopStream(stream.id);
+                this.logger.log(
+                  `Stopped HLS stream ${stream.id} for inactive camera ${camera.id}`,
+                );
+              } catch (err) {
+                this.logger.error(
+                  `Failed to stop HLS stream ${stream.id}: ${(err as Error).message}`,
+                );
+              }
+              break;
+
+            case Protocol.WEBRTC:
+              try {
+                await this.streamingService.stopStream(stream.id);
+                this.logger.log(
+                  `Stopped WebRTC stream ${stream.id} for inactive camera ${camera.id}`,
+                );
+              } catch (err) {
+                this.logger.error(
+                  `Failed to stop WebRTC stream ${stream.id}: ${(err as Error).message}`,
+                );
+              }
+              break;
+
+            default:
+              this.logger.warn(
+                `Unknown protocol ${stream.protocol} for camera ${camera.id}`,
+              );
+          }
         }
       }
     } catch (err) {

@@ -1,4 +1,4 @@
-import { CameraState } from '@/common/types';
+import { CameraDevice } from '@/common/types';
 import { FIREBASE_DB } from '@/common/utils/constant';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
@@ -9,43 +9,20 @@ export class FirebaseService {
   private readonly logger = new Logger(FirebaseService.name);
 
   constructor(@Inject(FIREBASE_DB) private readonly db: Database) {}
+  async getCameras(): Promise<CameraDevice[]> {
+    try {
+      const snapshot = await this.db.ref('/camera_devices').get();
+      const data = snapshot.exists() ? snapshot.val() : {};
 
-  async getCameraState(): Promise<CameraState> {
-    const snapshot = await this.db.ref('/CameraState').get();
-    const data = snapshot.exists() ? snapshot.val() : {};
+      const cameras: CameraDevice[] = Object.keys(data).map((key) => ({
+        id: key,
+        ...data[key],
+      }));
 
-    return {
-      active: Array.isArray(data.active) ? data.active : [],
-    };
-  }
-
-  async addActiveStream(streamId: string) {
-    const state = await this.getCameraState();
-
-    if (!state.active.includes(streamId)) {
-      state.active.push(streamId);
-      await this.db.ref('/CameraState').set(state);
-      this.logger.log(`Stream ${streamId} added to active`);
+      return cameras;
+    } catch (error) {
+      this.logger.error('Failed to fetch cameras', error);
+      throw error;
     }
-  }
-
-  async moveToInactive(streamId: string) {
-    const state = await this.getCameraState();
-
-    if (state.active.includes(streamId)) {
-      state.active = state.active.filter((id) => id !== streamId);
-      await this.db.ref('/CameraState').set(state);
-      this.logger.log(
-        `Stream ${streamId} moved to inactive (removed from active)`,
-      );
-    }
-  }
-
-  async removeStream(streamId: string) {
-    const state = await this.getCameraState();
-
-    const active = state.active.filter((id) => id !== streamId);
-    await this.db.ref('/CameraState').set({ active });
-    this.logger.log(`Stream ${streamId} was removed`);
   }
 }

@@ -20,7 +20,6 @@ export class StreamingService {
 
   constructor(
     private readonly mediaMtx: MediamtxService,
-    private readonly firebaseService: FirebaseService,
     private readonly configService: ConfigService<ConfigSchema, true>,
   ) {
     this.hlsBase = this.configService.get<string>(

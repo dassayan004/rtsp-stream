@@ -39,6 +39,15 @@ export interface StreamListResponse {
   items: StreamItem[];
 }
 
-export interface CameraState {
-  active: string[];
+export interface CameraDevice {
+  id: string;
+  name: string;
+  rtsp_url: string;
+  isActive: boolean;
+  isStreaming: boolean;
+  users: string[];
+  stream_id_hls?: string;
+  stream_id_webrtc?: string;
+  hls_url?: string;
+  webrtc_url?: string;
 }
