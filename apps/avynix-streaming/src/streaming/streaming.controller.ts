@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { StreamingService } from './streaming.service';
 import { StartStreamResponse, StreamListResponse } from '@/common/types';
-import { StartStreamDTO, StopStreamDTO } from './dto/create-streaming.dto';
+import { StartStreamDTO } from './dto/create-streaming.dto';
 
 @Controller('streaming')
 export class StreamingController {

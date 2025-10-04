@@ -20,13 +20,13 @@ export class StreamingCronService {
         this.streamingService.listActivePaths(),
         this.firebaseService.getCameras(),
       ]);
+
       if (!activeStreams.items?.length) return;
 
       const activeStreamIds = new Set(activeStreams.items.map((s) => s.name));
 
       const inactiveCameras = cameras.filter(
-        (cam) => cam.isActive && !cam.isStreaming,
-        // && cam.users.length === 0,
+        (cam) => cam.isActive && !cam.isStreaming && cam.users.length === 0,
       );
       for (const camera of inactiveCameras) {
         const streams = [

@@ -10,7 +10,6 @@ import { ConfigSchema } from '@/common/config/schema';
 import { StartStreamDTO } from './dto/create-streaming.dto';
 import { Protocol } from '@/common/enum/protocol.enum';
 import { MediamtxService } from '@/common/http/mediamtx/mediamtx.service';
-import { FirebaseService } from '@/firebase/firebase.service';
 const POLL_INTERVAL_MS = 1000;
 const MAX_WAIT_MS = 5000;
 @Injectable()

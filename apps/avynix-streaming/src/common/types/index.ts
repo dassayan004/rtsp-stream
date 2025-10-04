@@ -51,3 +51,15 @@ export interface CameraDevice {
   hls_url?: string;
   webrtc_url?: string;
 }
+export interface FirebaseCameraDevice {
+  id: string;
+  name: string;
+  rtsp_url: string;
+  isActive: boolean;
+  isStreaming: boolean;
+  users?: Record<string, true>;
+  stream_id_hls?: string;
+  stream_id_webrtc?: string;
+  hls_url?: string;
+  webrtc_url?: string;
+}
